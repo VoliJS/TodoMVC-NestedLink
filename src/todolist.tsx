@@ -9,16 +9,17 @@ interface TodoListProps {
 }
 
 interface TodoListState {
-    editing : number
+    editingKey : number
 }
 
 export default class TodoList extends LinkedComponent<TodoListProps, TodoListState> {
     state : TodoListState = {
-        editing : null
+        editingKey : null
     };
 
     render(){
-        const { todosLink, filterDone } = this.props;
+        const { todosLink, filterDone } = this.props,
+            editingKeyLink = this.linkAt( 'editingKey' );
 
         return (
             <section className="main">
@@ -28,12 +29,14 @@ export default class TodoList extends LinkedComponent<TodoListProps, TodoListSta
                 <label htmlFor="toggle-all">Mark all as complete</label>
 
                 <ul className="todo-list">
-                    { todosLink.map( ( todoLink, i ) => {
-                        if( matchTodo( todoLink.value, filterDone ) ){
-                            return <TodoItem key={ i } todoLink={ todoLink }
-                                             editingLink={ this.linkAt( 'editing' ) }/>;
-                        }
-                    } ) }
+                    { todosLink.map( todoLink => (
+                        matchTodo( todoLink.value, filterDone ) ? (
+                            <TodoItem key={ todoLink.key }
+                                      todoLink={ todoLink }
+                                      editingLink={ editingKeyLink }
+                            />
+                        ) : void 0
+                    ) ) }
                 </ul>
             </section>
         );
