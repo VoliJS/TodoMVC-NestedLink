@@ -1,65 +1,55 @@
-import React, { PropTypes } from 'react'
-import cx from 'classnames'
-import { Input } from 'valuelink/tags.jsx'
-import Link from 'valuelink'
+import * as React from 'react'
+import { Input } from 'valuelink/lib/tags'
+import Link, { LinkAt, LinkedComponent } from 'valuelink'
+import { Todo, TodoFilter, AllDoneLink, matchTodo } from './data'
 
-class AllDoneLink extends Link{
-    constructor( todosLink ){
-        super( todosLink.value.every( todo => todo.done ) );
-        this.parent = todosLink;
-    }
-
-    set( x ){
-        this.parent.update( todos =>{
-            todos.forEach( todo => todo.done = Boolean( x ) );
-            return todos;
-        });
-    }
+interface TodoListProps {
+    todosLink  : Link< Todo[] >
+    filterDone : TodoFilter
 }
 
-const TodoList = React.createClass( {
-    propTypes : {
-        todosLink  : PropTypes.instanceOf( Link ),
-        filterDone : PropTypes.bool
-    },
+interface TodoListState {
+    editing : number
+}
 
-    getInitialState(){
-        return {
-            editing : null
-        }
-    },
+export default class TodoList extends LinkedComponent<TodoListProps, TodoListState> {
+    state : TodoListState = {
+        editing : null
+    };
 
     render(){
-        const { todosLink, filterDone } = this.props,
-              editingLink = Link.state( this, 'editing' );
+        const { todosLink, filterDone } = this.props;
 
         return (
             <section className="main">
-                <Input className="toggle-all" type="checkbox"
+                <Input className="toggle-all" id="toggle-all" type="checkbox"
                        checkedLink={ new AllDoneLink( todosLink ) }/>
 
                 <label htmlFor="toggle-all">Mark all as complete</label>
 
                 <ul className="todo-list">
                     { todosLink.map( ( todoLink, i ) => {
-                        if( filterDone === null || filterDone === todoLink.value.done ){
+                        if( matchTodo( todoLink.value, filterDone ) ){
                             return <TodoItem key={ i } todoLink={ todoLink }
-                                             editingLink={ editingLink }/>;
+                                             editingLink={ this.linkAt( 'editing' ) }/>;
                         }
                     } ) }
                 </ul>
             </section>
         );
     }
-} );
-
-export default TodoList;
+}
 
 function clearOnEnter( x, e ){
     if( e.keyCode === 13 ) return null;
 }
 
-const TodoItem = ( { todoLink, editingLink } ) =>{
+interface TodoItemProps {
+    todoLink : LinkAt< Todo, number >
+    editingLink : Link< number >
+}
+
+const TodoItem = ( { todoLink, editingLink } : TodoItemProps ) =>{
     const editing   = editingLink.value === todoLink.key,
           todo = todoLink.value,
           className = cx( {
@@ -81,11 +71,25 @@ const TodoItem = ( { todoLink, editingLink } ) =>{
                 <button className="destroy" onClick={ () => todoLink.remove() }/>
             </div>
 
-            { editing && <Input className="edit"
-                                valueLink={ todoLink.at( 'desc' ) }
-                                autoFocus={ true }
-                                onBlur={ editingLink.action( () => null ) }
-                                onKeyDown={ editingLink.action( clearOnEnter ) }/> }
+            { editing &&
+                <Input className="edit"
+                       valueLink={ todoLink.at( 'desc' ) }
+                       autoFocus={ true }
+                       onBlur={ editingLink.action( () => null ) }
+                       onKeyDown={ editingLink.action( clearOnEnter ) }/>
+            }
         </li>
     );
 };
+
+function cx( rules : { [ className : string ] : boolean }) : string {
+    const classes : string[] = [];
+
+    for( let name in rules ){
+        if( rules[ name ] ){
+            classes.push( name );
+        }
+    }
+
+    return classes.join( ' ' );
+}

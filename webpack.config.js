@@ -1,42 +1,25 @@
-var webpack = require( 'webpack' );
-
 module.exports = {
-    entry  : './js/main.jsx',
-    output : {
-        // export itself to a global var
-        path       : __dirname,
-        publicPath : '/',
-        filename   : 'app.js'
+    entry: "./src/index.tsx",
+    output: {
+        filename: "index.js",
+        path: __dirname + "/dist"
     },
 
-    devtool : 'source-map',
+    // Enable sourcemaps for debugging webpack's output.
+    devtool: "source-map",
 
-    resolve : {
-        modulesDirectories : [ 'node_modules', 'js', '' ]
+    resolve: {
+        // Add '.ts' and '.tsx' as resolvable extensions.
+        extensions: [".ts", ".tsx", ".js", ".json"]
     },
 
-    plugins : [
-        new webpack.ProvidePlugin( {
-            $          : "jquery",
-            jQuery     : 'expose?jQuery!jquery',
-            _          : "underscore"
-        } )
-    ],
-
-    module : {
-        loaders : [
-            {
-                test    : /\.js$/,
-                exclude : /(node_modules)/,
-                loader  : 'babel?optional[]=runtime'
-            },
-
-            {
-                test    : /\.jsx$/,
-                loader  : 'babel?optional[]=runtime'
-            },
-
-            { test : /\.css$/, loader : "style-loader!css-loader" }
+    module: {
+        rules: [
+            // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
+            { test: /\.tsx?$/, use: "awesome-typescript-loader" },
+            { test: /\.css$/, use: [ 'style-loader', 'css-loader' ] },
+            // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
+            { enforce: "pre", test: /\.js$/, use: "source-map-loader" }
         ]
     }
 };

@@ -1,27 +1,34 @@
-import 'css/app.css'
-import React from 'react'
-import ReactDOM from 'react-dom'
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import { LinkedComponent } from 'valuelink'
-import {ToDo} from './model.js'
-import TodoList from './todolist.tsx'
-import Filter from './filter.tsx'
-import AddTodo from './addtodo.tsx'
+import TodoList from './todolist'
+import Filter from './filter'
+import AddTodo from './addtodo'
+import { Todo, TodoFilter } from './data'
 
+export interface AppState {
+    todos : Todo[],
+    filterDone : TodoFilter
+} 
 
-function removeDone( todos ){
-    return todos.filter( todo => !todo.done );
-}
-
-class App extends LinkedComponent {
-    // Declare component state
-    state = {
+class App extends LinkedComponent< undefined, AppState>{
+    // An application state is stored as the top-level component state.
+    state : AppState = {
         todos : [],
         filterDone : null
     };
 
-    getActiveCount(){
-        return this.todos.filter( todo => todo.done || count++ ).length;
+    getActiveCount() : number {
+        return this.state.todos.reduce( ( count, todo ) => todo.done ? count : count + 1, 0 );
     }
+
+    addTodo = ( desc : string ) : void => {
+        this.links.todos.push({ done : false, desc : desc });
+    };
+
+    removeDone = () : void => {
+        this.links.todos.update( x => x.filter( todo => !todo.done ) );
+    };
 
     componentWillMount(){
         const json = JSON.parse( localStorage.getItem( 'todo-mvc' ) || "{}" );
@@ -33,38 +40,42 @@ class App extends LinkedComponent {
             // Save state back to the local storage
             localStorage.setItem( 'todo-mvc', JSON.stringify( this.state ) );
         }
-    },
+    }
 
     render(){
-        const links = Link.all( this, 'todos', 'filterDone' ),
+        const links = this.linkAll(),
             { todos, filterDone } = this.state,
             hasTodos = Boolean( todos.length );
 
         return (
             <div>
                 <section className="todoapp">
-            <AddTodo onEnter={ desc => links.todos.push({ done : false, desc : desc }) }/>
+                    <AddTodo onEnter={ this.addTodo }/>
 
-        { hasTodos && <TodoList todosLink={ links.todos }
-            filterDone={ filterDone }
-                /> }
+                    { hasTodos &&
+                        <TodoList todosLink={ links.todos }
+                                  filterDone={ filterDone }
+                        />
+                    }
 
-        { hasTodos && <Filter count={ this.getActiveCount() }
-            filterLink={ links.filterDone }
-            onClear={ links.todos.action( removeDone ) }
-        />}
-        </section>
+                    { hasTodos &&
+                        <Filter count={ this.getActiveCount() }
+                                filterLink={ links.filterDone }
+                                onClear={ this.removeDone }
+                        />
+                    }
+                </section>
 
-        <footer className="info">
-            <p>Double-click to edit a todo</p>
-        <p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
-        <p>Created by <a href="http://todomvc.com">Vlad Balin</a></p>
-        <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
-            </footer>
-            </div>
-    );
+                <footer className="info">
+                    <p>Double-click to edit a todo</p>
+                    <p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
+                    <p>Created by <a href="http://todomvc.com">Vlad Balin</a></p>
+                    <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+                </footer>
+                </div>
+            );
     }
-} );
+}
 
 ReactDOM.render( <App />, document.getElementById( 'app-mount-root' ) );
 

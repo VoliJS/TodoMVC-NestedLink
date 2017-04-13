@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "module": "commonjs",
+        "noImplicitAny": false,
+        "target": "es5",
+        "jsx": "react"
+    },
+    "include":[
+        "./src/index.tsx"
+    ]
+}
