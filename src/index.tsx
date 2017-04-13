@@ -12,20 +12,16 @@ function removeDone( todos ){
     return todos.filter( todo => !todo.done );
 }
 
-const App = React.createClass( {
+class App extends LinkedComponent {
     // Declare component state
-    getInitialState(){
-        return {
-            todos : [],
-            filterDone : null
-        }
-    },
+    state = {
+        todos : [],
+        filterDone : null
+    };
 
     getActiveCount(){
-        let count = 0;
-        this.todos.forEach( todo => todo.done || count++ );
-        return count;
-    },
+        return this.todos.filter( todo => todo.done || count++ ).length;
+    }
 
     componentWillMount(){
         const json = JSON.parse( localStorage.getItem( 'todo-mvc' ) || "{}" );
